@@ -4,7 +4,9 @@ The below is for building on a CentOS system
 
 Install Git, GCC, and G++
 
-```sudo yum -y install git gcc gcc-c++```
+```
+sudo yum -y install git gcc gcc-c++
+```
 
 Get the repository and make libkeccak, changing `libkeccak.so` to `libkeccak.so.1`
 Then compile `myapp` and test it
