@@ -7,18 +7,10 @@ sudo yum -y install git gcc gcc-c++
 
 Make and install libkeccak
 ```
-git clone https://github.com/maandree/libkeccak
+git clone https://github.com/TundraFizz/libkeccak
 cd libkeccak
 make
 sudo make install PREFIX=/usr
-```
-
-Make
-```
-git clone https://github.com/maandree/sha3sum
-cd sha3sum
-make
-sudo make install
 ```
 
 Set the path
@@ -39,3 +31,6 @@ g++ -o myapp kek.o main-test.cpp -O3 -s -l keccak -fpermissive
 ./myapp
 72f15d6555488541650ce62c0bed7abd61247635c1973eb38474a2516ed1d884
 ```
+
+Note: My libkeccak is originally based off of the guy's below
+`git clone https://github.com/maandree/libkeccak``
