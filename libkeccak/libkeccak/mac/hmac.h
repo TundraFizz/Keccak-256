@@ -71,7 +71,7 @@ typedef struct libkeccak_hmac_state
 
 /**
  * Change the HMAC-hashing key on the state
- * 
+ *
  * @param   state       The state that should be reset
  * @param   key         The new key
  * @param   key_length  The length of key, in bits
@@ -83,7 +83,7 @@ int libkeccak_hmac_set_key(libkeccak_hmac_state_t *restrict state, const char *r
 
 /**
  * Initialise an HMAC hashing-state according to hashing specifications
- * 
+ *
  * @param   state       The state that should be initialised
  * @param   spec        The specifications for the state
  * @param   key         The key
@@ -108,7 +108,7 @@ libkeccak_hmac_initialise(libkeccak_hmac_state_t *restrict state, const libkecca
 
 /**
  * Wrapper for `libkeccak_hmac_initialise` that also allocates the states
- * 
+ *
  * @param   spec        The specifications for the state
  * @param   key         The key
  * @param   key_length  The length of key, in bits
@@ -119,7 +119,7 @@ static inline libkeccak_hmac_state_t *
 libkeccak_hmac_create(const libkeccak_spec_t *restrict spec,
                       const char *restrict key, size_t key_length)
 {
-	libkeccak_hmac_state_t *restrict state = malloc(sizeof(libkeccak_hmac_state_t));
+	libkeccak_hmac_state_t *restrict state = (libkeccak_hmac_state_t*)malloc(sizeof(libkeccak_hmac_state_t));
 	if (!state || libkeccak_hmac_initialise(state, spec, key, key_length))
 		return free(state), NULL;
 	return state;
@@ -129,7 +129,7 @@ libkeccak_hmac_create(const libkeccak_spec_t *restrict spec,
 /**
  * Reset an HMAC-hashing state according to hashing specifications,
  * you can choose whether to change the key
- * 
+ *
  * @param   state       The state that should be reset
  * @param   key         The new key, `NULL` to keep the old key
  * @param   key_length  The length of key, in bits, ignored if `key == NULL`
@@ -146,7 +146,7 @@ libkeccak_hmac_reset(libkeccak_hmac_state_t *restrict state, const char *restric
 
 /**
  * Wipe sensitive data wihout freeing any data
- * 
+ *
  * @param  state  The state that should be wipe
  */
 LIBKECCAK_GCC_ONLY(__attribute__((nonnull, nothrow, optimize("-O0"))))
@@ -155,7 +155,7 @@ void libkeccak_hmac_wipe(volatile libkeccak_hmac_state_t *restrict state);
 
 /**
  * Release resources allocation for an HMAC hashing-state without wiping sensitive data
- * 
+ *
  * @param  state  The state that should be destroyed
  */
 static inline void
@@ -175,7 +175,7 @@ libkeccak_hmac_fast_destroy(libkeccak_hmac_state_t *restrict state)
 
 /**
  * Release resources allocation for an HMAC hasing-state and wipe sensitive data
- * 
+ *
  * @param  state  The state that should be destroyed
  */
 LIBKECCAK_GCC_ONLY(__attribute__((unused, optimize("-O0"))))
@@ -198,7 +198,7 @@ libkeccak_hmac_destroy(volatile libkeccak_hmac_state_t *restrict state)
 
 /**
  * Wrapper for `libkeccak_fast_destroy` that also frees the allocation of the state
- * 
+ *
  * @param  state  The state that should be freed
  */
 LIBKECCAK_GCC_ONLY(__attribute__((unused)))
@@ -212,7 +212,7 @@ libkeccak_hmac_fast_free(libkeccak_hmac_state_t *restrict state)
 
 /**
  * Wrapper for `libkeccak_hmac_destroy` that also frees the allocation of the state
- * 
+ *
  * @param  state  The state that should be freed
  */
 LIBKECCAK_GCC_ONLY(__attribute__((unused, optimize("-O0"))))
@@ -233,7 +233,7 @@ libkeccak_hmac_free(volatile libkeccak_hmac_state_t *restrict state)
 
 /**
  * Make a copy of an HMAC hashing-state
- * 
+ *
  * @param   dest  The slot for the duplicate, must not be initialised (memory leak otherwise)
  * @param   src   The state to duplicate
  * @return        Zero on success, -1 on error
@@ -244,7 +244,7 @@ int libkeccak_hmac_copy(libkeccak_hmac_state_t *restrict dest, const libkeccak_h
 
 /**
  * A wrapper for `libkeccak_hmac_copy` that also allocates the duplicate
- * 
+ *
  * @param   src  The state to duplicate
  * @return       The duplicate, `NULL` on error
  */
@@ -252,7 +252,7 @@ LIBKECCAK_GCC_ONLY(__attribute__((nonnull, unused, warn_unused_result, malloc)))
 static inline libkeccak_hmac_state_t *
 libkeccak_hmac_duplicate(const libkeccak_hmac_state_t *restrict src)
 {
-	libkeccak_hmac_state_t* restrict dest = malloc(sizeof(libkeccak_hmac_state_t));
+	libkeccak_hmac_state_t* restrict dest = (libkeccak_hmac_state_t*)malloc(sizeof(libkeccak_hmac_state_t));
 	if (!dest || libkeccak_hmac_copy(dest, src))
 		return libkeccak_hmac_free(dest), NULL;
 	return dest;
@@ -262,7 +262,7 @@ libkeccak_hmac_duplicate(const libkeccak_hmac_state_t *restrict src)
 /**
  * Calculates the allocation size required for the second argument
  * of `libkeccak_hmac_marshal` (`char* restrict data)`)
- * 
+ *
  * @param   state  The state as it will be marshalled by a subsequent call to `libkeccak_hamc_marshal`
  * @return         The allocation size needed for the buffer to which the state will be marshalled
  */
@@ -277,7 +277,7 @@ libkeccak_hmac_marshal_size(const libkeccak_hmac_state_t *restrict state)
 
 /**
  * Marshal a `libkeccak_hmac_state_t` into a buffer
- * 
+ *
  * @param   state  The state to marshal
  * @param   data   The output buffer
  * @return         The number of bytes stored to `data`
@@ -300,7 +300,7 @@ libkeccak_hmac_marshal(const libkeccak_hmac_state_t *restrict state, char *restr
 
 /**
  * Unmarshal a `libkeccak_hmac_state_t` from a buffer
- * 
+ *
  * @param   state  The slot for the unmarshalled state, must not be initialised (memory leak otherwise)
  * @param   data   The input buffer
  * @return         The number of bytes read from `data`, 0 on error
@@ -312,7 +312,7 @@ size_t libkeccak_hmac_unmarshal(libkeccak_hmac_state_t *restrict state, const ch
 /**
  * Gets the number of bytes the `libkeccak_hmac_state_t` stored
  * at the beginning of `data` occupies
- * 
+ *
  * @param   data  The data buffer
  * @return        The byte size of the stored state
  */
@@ -329,7 +329,7 @@ libkeccak_hmac_unmarshal_skip(const char *restrict data)
 /**
  * Absorb more, or the first part, of the message
  * without wiping sensitive data when possible
- * 
+ *
  * @param   state   The hashing state
  * @param   msg     The partial message
  * @param   msglen  The length of the partial message, in bytes
@@ -342,7 +342,7 @@ int libkeccak_hmac_fast_update(libkeccak_hmac_state_t *restrict state, const cha
 /**
  * Absorb more, or the first part, of the message
  * and wipe sensitive data when possible
- * 
+ *
  * @param   state   The hashing state
  * @param   msg     The partial message
  * @param   msglen  The length of the partial message, in bytes
@@ -355,9 +355,9 @@ int libkeccak_hmac_update(libkeccak_hmac_state_t *restrict state, const char *re
 /**
  * Absorb the last part of the message and fetch the hash
  * without wiping sensitive data when possible
- * 
+ *
  * You may use `&state->sponge` for continued squeezing
- * 
+ *
  * @param   state    The hashing state
  * @param   msg      The rest of the message, may be `NULL`, may be modified
  * @param   msglen   The length of the partial message
@@ -374,9 +374,9 @@ int libkeccak_hmac_fast_digest(libkeccak_hmac_state_t *restrict state, const cha
 /**
  * Absorb the last part of the message and fetch the hash
  * and wipe sensitive data when possible
- * 
+ *
  * You may use `&state->sponge` for continued squeezing
- * 
+ *
  * @param   state    The hashing state
  * @param   msg      The rest of the message, may be `NULL`, may be modified
  * @param   msglen   The length of the partial message
