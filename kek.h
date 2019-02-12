@@ -1,4 +1,4 @@
-#include <libkeccak.h>
+#include "libkeccak/libkeccak.h"
 #include <sys/stat.h>
 #include <alloca.h>
 #include <ctype.h>
