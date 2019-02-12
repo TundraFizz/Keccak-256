@@ -3,18 +3,22 @@
 The below is for building on a CentOS system
 
 Install Git, GCC, and G++
-`sudo yum -y install git gcc gcc-c++`
+
+```sudo yum -y install git gcc gcc-c++```
 
 Get the repository and make libkeccak, changing `libkeccak.so` to `libkeccak.so.1`
-`Then compile `myapp` and test it`
-`git clone https://github.com/TundraFizz/Keccak-256`
-`cd Keccak-256/libkeccak`
-`make`
-`mv libkeccak.so libkeccak.so.1`
-`cd ..`
-`gcc -c -o kek.o kek.c -std=c99 -O3 -s`
-`g++ -o myapp kek.o main-test.cpp -O3 -s -L libkeccak -l keccak -fpermissive`
-`./myapp`
+Then compile `myapp` and test it
+
+```
+git clone https://github.com/TundraFizz/Keccak-256
+cd Keccak-256/libkeccak
+make
+mv libkeccak.so libkeccak.so.1
+cd ..
+gcc -c -o kek.o kek.c -std=c99 -O3 -s
+g++ -o myapp kek.o main-test.cpp -O3 -s -L libkeccak -l keccak -fpermissive
+./myapp
+```
 
 ```
 cc -fPIC -c -o libkeccak/digest.o libkeccak/digest.c -std=c99 -O3 -D_DEFAULT_SOURCE -D_BSD_SOURCE -D_XOPEN_SOURCE=700
