@@ -121,7 +121,7 @@ libkeccak_hmac_create(const libkeccak_spec_t *restrict spec,
 {
 	libkeccak_hmac_state_t *restrict state = (libkeccak_hmac_state_t*)malloc(sizeof(libkeccak_hmac_state_t));
 	if (!state || libkeccak_hmac_initialise(state, spec, key, key_length))
-		return free(state), NULL;
+		return (libkeccak_hmac_state_t*)(free(state), NULL);
 	return state;
 }
 
@@ -254,7 +254,7 @@ libkeccak_hmac_duplicate(const libkeccak_hmac_state_t *restrict src)
 {
 	libkeccak_hmac_state_t* restrict dest = (libkeccak_hmac_state_t*)malloc(sizeof(libkeccak_hmac_state_t));
 	if (!dest || libkeccak_hmac_copy(dest, src))
-		return libkeccak_hmac_free(dest), NULL;
+		return (libkeccak_hmac_state_t*)(libkeccak_hmac_free(dest), NULL);
 	return dest;
 }
 
