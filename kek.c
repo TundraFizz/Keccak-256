@@ -96,12 +96,14 @@ const char *restrict suffix, char *restrict hash) {
   if (!fstat(fd, &attr) && attr.st_size > 0)
     blksize = (size_t)(attr.st_size);
 
-  chunk = alloca(blksize);
+  chunk = malloc(blksize);
 
   for (;;) {
     got = read(fd, chunk, blksize);
-    if (got < 0)
+    if (got < 0) {
+      free(chunk);
       return -1;
+    }
     if (!got)
       break;
     r = w = 0;
@@ -115,9 +117,13 @@ const char *restrict suffix, char *restrict hash) {
         user_error("file is malformated");
       }
     }
-    if (libkeccak_fast_update(state, chunk, w) < 0)
+    if (libkeccak_fast_update(state, chunk, w) < 0) {
+      free(chunk);
       return -1;
+    }
   }
+
+  free(chunk);
 
   if (!even)
     user_error("file is malformated");
