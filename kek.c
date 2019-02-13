@@ -93,8 +93,8 @@ const char *restrict suffix, char *restrict hash) {
   if (libkeccak_state_initialise(state, spec) < 0)
     return -1;
 
-  if (!fstat(fd, &attr) && attr.st_blksize > 0)
-    blksize = (size_t)(attr.st_blksize);
+  if (!fstat(fd, &attr) && attr.st_size > 0)
+    blksize = (size_t)(attr.st_size);
 
   chunk = alloca(blksize);
 
@@ -202,8 +202,8 @@ long squeezes, const char *restrict suffix, enum representation style, int hex) 
     eperror();
 
   if (!fstat(fd, &attr)) {
-    if (attr.st_blksize > 0)
-      blksize = (size_t)(attr.st_blksize);
+    if (attr.st_size > 0)
+      blksize = (size_t)(attr.st_size);
     if (attr.st_size > 0)
       size = (size_t)(attr.st_size);
   }

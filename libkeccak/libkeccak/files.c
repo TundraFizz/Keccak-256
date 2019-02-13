@@ -2,7 +2,7 @@
 #include "files.h"
 
 #include <sys/stat.h>
-#include <alloca.h>
+#include <malloc.h>
 #include <errno.h>
 #include <stddef.h>
 #include <unistd.h>
@@ -12,7 +12,7 @@
 /**
  * Calculate a Keccak-family hashsum of a file,
  * the content of the file is assumed non-sensitive
- * 
+ *
  * @param   fd       The file descriptor of the file to hash
  * @param   state    The hashing state, should not be initialised (memory leak otherwise)
  * @param   spec     Specifications for the hashing algorithm
@@ -35,9 +35,9 @@ libkeccak_generalised_sum_fd(int fd, libkeccak_state_t *restrict state,
 		return -1;
 
 	if (fstat(fd, &attr) == 0)
-		if (attr.st_blksize > 0)
-			blksize = (size_t)(attr.st_blksize);
-  
+		if (attr.st_size > 0)
+			blksize = (size_t)(attr.st_size);
+
 	chunk = alloca(blksize);
 
 	for (;;) {

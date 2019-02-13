@@ -19,7 +19,7 @@ libkeccak.a: $(OBJ)
 	$(AR) -s $@
 
 .c.o:
-	$(CC) -fPIC -c -o $@ $< $(CFLAGS) $(CPPFLAGS)
+	gcc -fPIC -c -o $@ $< $(CFLAGS) $(CPPFLAGS)
 
 test:
 	clear

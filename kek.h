@@ -1,6 +1,6 @@
 #include "libkeccak/libkeccak.h"
 #include <sys/stat.h>
-#include <alloca.h>
+#include <malloc.h>
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
