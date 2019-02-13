@@ -1,15 +1,14 @@
 # Keccak-256
 
-The below is for building on a CentOS system
+The below should work on both Linux and Windows systems
 
-Install Git, GCC, and G++
+Install Git, GCC, and G++ (if you're on Linux)
 
 ```
 sudo yum -y install git gcc gcc-c++
 ```
 
-Get the repository and make libkeccak, changing `libkeccak.so` to `libkeccak.so.1`
-Then compile `myapp` and test it
+Perform these commands
 
 ```
 git clone https://github.com/TundraFizz/Keccak-256
