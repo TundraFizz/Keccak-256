@@ -1,4 +1,4 @@
-#include "kek.h"
+#include "keccak256.h"
 
 static void usage(void) {
   fprintf(stderr, "usage: %s [-u | -l | -b | -c] [-R rate] [-C capacity] "
