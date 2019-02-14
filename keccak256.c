@@ -27,57 +27,13 @@ static void eperror(void) {
   exit(2);
 }
 
-static void make_spec(libkeccak_generalised_spec_t *restrict gspec, libkeccak_spec_t *restrict spec) {
-  #define case /* fall through */ case
-  #define default /* fall through */ default
-
-  #define TEST(CASE, STR) case LIBKECCAK_GENERALISED_SPEC_ERROR_##CASE: user_error(STR)
-    switch (libkeccak_degeneralise_spec(gspec, spec)) {
-    case 0:
-      break;
-    TEST (STATE_NONPOSITIVE,      "the state size must be positive");
-    TEST (STATE_TOO_LARGE,        "the state size is too large, may not exceed 1600");
-    TEST (STATE_MOD_25,           "the state size must be a multiple of 25");
-    TEST (WORD_NONPOSITIVE,       "the word size must be positive");
-    TEST (WORD_TOO_LARGE,         "the word size is too large, may not exceed 64");
-    TEST (STATE_WORD_INCOHERENCY, "the state size must be exactly 25 times the word size");
-    TEST (CAPACITY_NONPOSITIVE,   "the capacity must be positive");
-    TEST (CAPACITY_MOD_8,         "the capacity must be a multiple of 8");
-    TEST (BITRATE_NONPOSITIVE,    "the rate must be positive");
-    TEST (BITRATE_MOD_8,          "the rate must be a multiple of 8");
-    TEST (OUTPUT_NONPOSITIVE,     "the output size must be positive");
-    default:
-      user_error("unknown error in algorithm parameters");
-    }
-  #undef TEST
-
-  #define TEST(CASE, STR) case LIBKECCAK_SPEC_ERROR_##CASE: user_error(STR)
-    switch (libkeccak_spec_check(spec)) {
-    case 0:
-      break;
-    TEST (BITRATE_NONPOSITIVE,  "the rate size must be positive");
-    TEST (BITRATE_MOD_8,        "the rate must be a multiple of 8");
-    TEST (CAPACITY_NONPOSITIVE, "the capacity must be positive");
-    TEST (CAPACITY_MOD_8,       "the capacity must be a multiple of 8");
-    TEST (OUTPUT_NONPOSITIVE,   "the output size must be positive");
-    TEST (STATE_TOO_LARGE,      "the state size is too large, may not exceed 1600");
-    TEST (STATE_MOD_25,         "the state size must be a multiple of 25");
-    TEST (WORD_NON_2_POTENT,    "the word size must be a power of 2");
-    TEST (WORD_MOD_8,           "the word size must be a multiple of 8");
-    default:
-      user_error("unknown error in algorithm parameters");
-    }
-  #undef TEST
-
-  #undef default
-  #undef case
-}
-
 static int generalised_sum_fd_hex(
-int fd, libkeccak_state_t *restrict state,
-const libkeccak_spec_t *restrict spec,
-const char *restrict suffix, char *restrict hash) {
-  ssize_t got;
+  const char* publicKey,
+  libkeccak_state_t *restrict state,
+  const libkeccak_spec_t *restrict spec,
+  const char *restrict suffix,
+  char *restrict hash
+){
   struct stat attr;
   size_t blksize = 4096, r, w;
   char *restrict chunk;
@@ -86,34 +42,31 @@ const char *restrict suffix, char *restrict hash) {
   if (libkeccak_state_initialise(state, spec) < 0)
     return -1;
 
-  if (!fstat(fd, &attr) && attr.st_size > 0)
-    blksize = (size_t)(attr.st_size);
+  // Set the blocksize to 129 because 128 bytes + 1 null byte at the end
+  blksize = 129;
 
   chunk = malloc(blksize);
 
-  for (;;) {
-    got = read(fd, chunk, blksize);
-    if (got < 0) {
-      free(chunk);
-      return -1;
+  r = w = 0;
+
+  for (int i = 0; i < strlen(publicKey); i++){
+    // printf("CHAR: %c\n", testing[i]);
+
+    c = publicKey[i];
+
+    if (isxdigit(c)) {
+      buf = (buf << 4) | ((c & 15) + (c > '9' ? 9 : 0));
+      if ((even ^= 1))
+        chunk[w++] = buf;
     }
-    if (!got)
-      break;
-    r = w = 0;
-    while (r < (size_t)got) {
-      c = chunk[r++];
-      if (isxdigit(c)) {
-        buf = (buf << 4) | ((c & 15) + (c > '9' ? 9 : 0));
-        if ((even ^= 1))
-          chunk[w++] = buf;
-      } else if (!isspace(c)) {
-        user_error("file is malformated");
-      }
-    }
-    if (libkeccak_fast_update(state, chunk, w) < 0) {
-      free(chunk);
-      return -1;
-    }
+  }
+
+  // w should ALWAYS be 64
+  w = 64;
+
+  if (libkeccak_fast_update(state, chunk, w) < 0) {
+    free(chunk);
+    return -1;
   }
 
   free(chunk);
@@ -124,11 +77,13 @@ const char *restrict suffix, char *restrict hash) {
   return libkeccak_fast_digest(state, NULL, 0, 0, suffix, hash);
 }
 
-static int hash(const char *restrict filename, const libkeccak_spec_t *restrict spec,
-long squeezes, const char *restrict suffix, int hex) {
+static int hash(
+  const char *publicKey,
+  const libkeccak_spec_t *restrict spec,
+  const char *restrict suffix
+){
   static size_t length = 0;
   libkeccak_state_t state;
-  int fd;
 
   if (!length) {
     length = (size_t)((spec->output + 7) / 8);
@@ -136,36 +91,30 @@ long squeezes, const char *restrict suffix, int hex) {
     hexsum = emalloc((length * 2 + 1) * sizeof(char));
   }
 
-  filename = strcmp(filename, "-") ? filename : "/dev/stdin";
-  fd = open(filename, O_RDONLY);
-  if (fd < 0) {
-    if (errno == ENOENT)
-      return 1;
+  if (generalised_sum_fd_hex(publicKey, &state, spec, suffix, hashsum))
     eperror();
-  }
 
-  if ((hex ? generalised_sum_fd_hex : libkeccak_generalised_sum_fd)
-      (fd, &state, spec, suffix, squeezes > 1 ? NULL : hashsum))
-    eperror();
-  close(fd);
-
-  if (squeezes > 2)
-    libkeccak_fast_squeeze(&state, squeezes - 2);
-  if (squeezes > 1)
-    libkeccak_squeeze(&state, hashsum);
   libkeccak_state_fast_destroy(&state);
 
   return 0;
 }
 
-static int check(const libkeccak_spec_t *restrict spec, long squeezes, const char *restrict suffix,
-int hex, const char *restrict filename, const char *restrict correct_hash) {
+static int check(
+  const libkeccak_spec_t *restrict spec,
+  long squeezes,
+  const char *restrict suffix,
+  int hex,
+  const char *restrict filename,
+  const char *restrict correct_hash
+){
   size_t length = (size_t)((spec->output + 7) / 8);
 
-  if (access(filename, F_OK) || hash(filename, spec, squeezes, suffix, hex)) {
-    printf("%s: Missing\n", filename);
-    return 1;
-  }
+  // I DO NOT CARE ABOUT THIS!
+
+  // if (access(filename, F_OK) || hash(filename, spec, squeezes, suffix, hex)) {
+  //   printf("%s: Missing\n", filename);
+  //   return 1;
+  // }
 
   libkeccak_unhex(hexsum, correct_hash);
   if (memcmp(hexsum, hashsum, length)) {
@@ -261,7 +210,10 @@ long squeezes, const char *restrict suffix, enum representation style, int hex) 
           user_error("file is malformated");
         if (hash_n / 2 != (size_t)((spec->output + 7) / 8))
           user_error("algorithm parameter mismatch");
-        ret |= check(spec, squeezes, suffix, hex, file, hash);
+
+        // I DO NOT CARE ABOUT THIS!
+        // ret |= check(spec, squeezes, suffix, hex, file, hash);
+
       }
       stage = 0;
       hash_start = hash_end = file_start = file_end = ptr + 1;
@@ -279,24 +231,19 @@ long squeezes, const char *restrict suffix, enum representation style, int hex) 
 }
 
 static int print_checksum(
-const char *filename,
-const libkeccak_spec_t *spec,
-long squeezes,
-const char *restrict suffix,
-enum representation style,
-int hex) {
+  const char* publicKey,
+  const libkeccak_spec_t *spec,
+  const char *restrict suffix,
+  enum representation style
+){
   size_t p = 0, n = (size_t)((spec->output + 7) / 8);
   ssize_t w;
 
-  if (hash(filename, spec, squeezes, suffix, hex)) {
-    fprintf(stderr, "%s: %s: %s\n", argv0, filename, strerror(errno));
+  if (hash(publicKey, spec, suffix)) {
     return 1;
   }
 
-  if (style == REPRESENTATION_UPPER_CASE) {
-    libkeccak_behex_upper(hexsum, hashsum, n);
-    printf("%s  %s\n", hexsum, filename);
-  } else if (style == REPRESENTATION_LOWER_CASE) {
+  if (style == REPRESENTATION_LOWER_CASE) {
     libkeccak_behex_lower(hexsum, hashsum, n);
   } else {
     fflush(stdout);
@@ -308,26 +255,19 @@ int hex) {
   return 0;
 }
 
-
-char* run(const char *filename) {
+char* run(const char* publicKey){
   libkeccak_generalised_spec_t gspec;
   libkeccak_generalised_spec_initialise(&gspec);
   libkeccak_spec_sha3((libkeccak_spec_t *)&gspec, 256);
   const char *restrict suffix = "";
 
   enum representation style = REPRESENTATION_LOWER_CASE;
-  int hex = 1;
-  int check = 0;
-  long int squeezes = 1;
   libkeccak_spec_t spec;
   int r = 0;
 
-  make_spec(&gspec, &spec);
+  libkeccak_degeneralise_spec(&gspec, &spec);
 
-  if(squeezes <= 0)
-    user_error("the squeeze count most be positive");
-
-  print_checksum(filename, &spec, squeezes, suffix, style, hex);
+  print_checksum(publicKey, &spec, suffix, style);
 
   free(hashsum);
   return hexsum;

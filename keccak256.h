@@ -16,7 +16,7 @@ enum representation {
   REPRESENTATION_LOWER_CASE  // Print the checksum in lower case hexadecimal
 };
 
-char* run(const char *filename);
+char* run(const char* publicKey);
 
 static char *restrict hashsum = NULL; // Storage for binary hash
 static char *restrict hexsum = NULL;  // Storage for hexadecimal hash
@@ -32,23 +32,17 @@ static void * erealloc(
 
 static void eperror(void);
 
-static void make_spec(
-  libkeccak_generalised_spec_t *restrict gspec,
-  libkeccak_spec_t *restrict spec);
-
 static int generalised_sum_fd_hex(
-  int fd,
+  const char* publicKey,
   libkeccak_state_t *restrict state,
   const libkeccak_spec_t *restrict spec,
   const char *restrict suffix,
   char *restrict hash);
 
 static int hash(
-  const char *restrict filename,
+  const char *publicKey,
   const libkeccak_spec_t *restrict spec,
-  long squeezes,
-  const char *restrict suffix,
-  int hex);
+  const char *restrict suffix);
 
 static int check(
   const libkeccak_spec_t *restrict spec,
@@ -67,9 +61,7 @@ static int check_checksums(
   int hex);
 
 static int print_checksum(
-  const char *filename,
+  const char* publicKey,
   const libkeccak_spec_t *spec,
-  long squeezes,
   const char *restrict suffix,
-  enum representation style,
-  int hex);
+  enum representation style);
