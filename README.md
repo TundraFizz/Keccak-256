@@ -13,6 +13,6 @@ gcc -c -std=c99 -O3 -s keccak256.c -o keccak256.o
 To test the library
 
 ```
-g++ -std=c99 -O3 -s main.cpp keccak256.o -L precompiled/libkeccak -l :libkeccak.a -o myapp
+g++ -O3 -s main.cpp keccak256.o -L precompiled/libkeccak -l :libkeccak.a -o myapp
 ./myapp
 ```

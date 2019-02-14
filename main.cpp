@@ -9,7 +9,7 @@
 #endif
 
 extern "C" {
-  #include "kek.h"
+  #include "keccak256.h"
 }
 
 int main(){
