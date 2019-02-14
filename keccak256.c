@@ -1,12 +1,5 @@
 #include "keccak256.h"
 
-static void usage(void) {
-  fprintf(stderr, "usage: %s [-u | -l | -b | -c] [-R rate] [-C capacity] "
-                  "[-N output-size] [-S state-size] [-W word-size] "
-                  "[-Z squeeze-count] [-vx] [file ...]\n", argv0);
-  exit(2);
-}
-
 static void user_error(const char *text) {
   fprintf(stderr, "%s: %s\n", argv0, text);
   exit(2);
@@ -305,9 +298,6 @@ int hex) {
     printf("%s  %s\n", hexsum, filename);
   } else if (style == REPRESENTATION_LOWER_CASE) {
     libkeccak_behex_lower(hexsum, hashsum, n);
-    printf("vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv\n");
-    printf("%s  %s\n", hexsum, filename);
-    printf("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n");
   } else {
     fflush(stdout);
     for (; p < n; p += (size_t)w)
@@ -319,7 +309,7 @@ int hex) {
 }
 
 
-void run(const char *filename) {
+char* run(const char *filename) {
   libkeccak_generalised_spec_t gspec;
   libkeccak_generalised_spec_initialise(&gspec);
   libkeccak_spec_sha3((libkeccak_spec_t *)&gspec, 256);
@@ -340,5 +330,5 @@ void run(const char *filename) {
   print_checksum(filename, &spec, squeezes, suffix, style, hex);
 
   free(hashsum);
-  free(hexsum);
+  return hexsum;
 }

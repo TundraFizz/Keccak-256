@@ -16,13 +16,11 @@ enum representation {
   REPRESENTATION_LOWER_CASE  // Print the checksum in lower case hexadecimal
 };
 
-void run(const char *filename);
+char* run(const char *filename);
 
 static char *restrict hashsum = NULL; // Storage for binary hash
 static char *restrict hexsum = NULL;  // Storage for hexadecimal hash
 char *argv0;
-
-static void usage(void);
 
 static void user_error(const char *text);
 

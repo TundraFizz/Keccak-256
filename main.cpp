@@ -13,6 +13,9 @@ extern "C" {
 }
 
 int main(){
-  run("public.key");
+  char* test = run("public.key");
+  std::cout << test << "\n";
+  free(test);
+
   return 0;
 }
