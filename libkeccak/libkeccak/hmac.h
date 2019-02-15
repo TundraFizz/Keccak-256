@@ -8,9 +8,9 @@
  * the key to the message. [http://keccak.noekeon.org]
  */
 
-#include "../spec.h"
-#include "../state.h"
-#include "../internal.h"
+#include "spec.h"
+#include "state.h"
+#include "internal.h"
 
 #include <stddef.h>
 #include <stdint.h>

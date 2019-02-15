@@ -1,7 +1,7 @@
 /* See LICENSE file for copyright and license details. */
 #include "hmac.h"
 
-#include "../digest.h"
+#include "digest.h"
 
 
 
@@ -27,7 +27,7 @@ my_explicit_bzero(void *ptr, size_t size)
 
 /**
  * Change the HMAC-hashing key on the state
- * 
+ *
  * @param   state       The state that should be reset
  * @param   key         The new key
  * @param   key_length  The length of key, in bits
@@ -71,7 +71,7 @@ libkeccak_hmac_set_key(libkeccak_hmac_state_t *restrict state, const char *restr
 
 /**
  * Wipe sensitive data wihout freeing any data
- * 
+ *
  * @param  state  The state that should be wipe
  */
 void
@@ -91,7 +91,7 @@ libkeccak_hmac_wipe(volatile libkeccak_hmac_state_t *restrict state)
 
 /**
  * Make a copy of an HMAC hashing-state
- * 
+ *
  * @param   dest  The slot for the duplicate, must not be initialised (memory leak otherwise)
  * @param   src   The state to duplicate
  * @return        Zero on success, -1 on error
@@ -125,7 +125,7 @@ libkeccak_hmac_copy(libkeccak_hmac_state_t *restrict dest, const libkeccak_hmac_
 
 /**
  * Unmarshal a `libkeccak_hmac_state_t` from a buffer
- * 
+ *
  * @param   state  The slot for the unmarshalled state, must not be initialised (memory leak otherwise)
  * @param   data   The input buffer
  * @return         The number of bytes read from `data`, 0 on error
@@ -171,7 +171,7 @@ libkeccak_hmac_unmarshal(libkeccak_hmac_state_t *restrict state, const char *res
 /**
  * Absorb more, or the first part, of the message
  * without wiping sensitive data when possible
- * 
+ *
  * @param   state   The hashing state
  * @param   msg     The partial message
  * @param   msglen  The length of the partial message, in bytes
@@ -219,7 +219,7 @@ libkeccak_hmac_fast_update(libkeccak_hmac_state_t *restrict state, const char *r
 /**
  * Absorb more, or the first part, of the message
  * and wipe sensitive data when possible
- * 
+ *
  * @param   state   The hashing state
  * @param   msg     The partial message
  * @param   msglen  The length of the partial message, in bytes
@@ -268,9 +268,9 @@ libkeccak_hmac_update(libkeccak_hmac_state_t *restrict state, const char *restri
 /**
  * Absorb the last part of the message and fetch the hash
  * without wiping sensitive data when possible
- * 
+ *
  * You may use `&state->sponge` for continued squeezing
- * 
+ *
  * @param   state    The hashing state
  * @param   msg      The rest of the message, may be `NULL`, may be modified
  * @param   msglen   The length of the partial message
@@ -343,9 +343,9 @@ fail:
 /**
  * Absorb the last part of the message and fetch the hash
  * and wipe sensitive data when possible
- * 
+ *
  * You may use `&state->sponge` for continued squeezing
- * 
+ *
  * @param   state    The hashing state
  * @param   msg      The rest of the message, may be `NULL`, may be modified
  * @param   msglen   The length of the partial message

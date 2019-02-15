@@ -6,6 +6,5 @@ extern "C" {
 }
 
 const char* PublicKeyToAddress(const char* publicKey){
-  const char* address = run(publicKey);
-  return address;
+  return run(publicKey);
 }
