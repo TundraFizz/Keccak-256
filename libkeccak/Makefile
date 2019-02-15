@@ -1,37 +1,36 @@
-CFLAGS   = -std=c99 -O3
-CPPFLAGS = -D_DEFAULT_SOURCE -D_BSD_SOURCE -D_XOPEN_SOURCE=700
-LDFLAGS  = -s
-
-OBJ =\
-	libkeccak/digest.o\
-	libkeccak/files.o\
-	libkeccak/generalised-spec.o\
-	libkeccak/hex.o\
-	libkeccak/state.o\
-	libkeccak/mac/hmac.o
+FLAGS = -fPIC -c -std=c99 -O3 -D_DEFAULT_SOURCE -D_BSD_SOURCE -D_XOPEN_SOURCE=700
 
 all:
 	clear
-	make libkeccak.a
+	make CreateObjectFiles
+	make CreateArchive
+	g++ -O3 -s main.cpp -L . -l :my-library.a -o myapp
+	# g++ -O3 -s main-cpp.cpp -L . -l :my-library.a -o myapp
+	./myapp
 
-libkeccak.a: $(OBJ)
-	$(AR) rc $@ $?
-	$(AR) -s $@
+CreateObjectFiles:
+	gcc -c -std=c99 -O3 -s keccak256.c        -o keccak256.o
+	g++ -c          -O3 -s wrapper.cpp        -o wrapper.o
+	# g++ -c          -O3 -s keccak256.cpp      -o keccak256.o
 
-.c.o:
-	gcc -fPIC -c -o $@ $< $(CFLAGS) $(CPPFLAGS)
+	gcc $(FLAGS) libkeccak/digest.c           -o digest.o
 
-test:
-	clear
-	make clean
-	make all
-	gcc -c -o ../kek.o ../kek.c -std=c99 -O3 -s
-	g++ -O3 -s -fpermissive  ../kek.o ../main.cpp -L . -l keccak  -o ../myapp
-	../myapp
+	gcc $(FLAGS) libkeccak/files.c            -o files.o
+	# g++ -fPIC -c -O3 -D_DEFAULT_SOURCE -D_BSD_SOURCE -D_XOPEN_SOURCE=700 libkeccak/files.c            -o files.o
 
-install:
-	ln -s libkeccak.so libkeccak.so.1
+	gcc $(FLAGS) libkeccak/generalised-spec.c -o generalised-spec.o
+	gcc $(FLAGS) libkeccak/hex.c              -o hex.o
+	gcc $(FLAGS) libkeccak/state.c            -o state.o
+	gcc $(FLAGS) libkeccak/hmac.c         -o hmac.o
+
+CreateArchive:
+	ar rc my-library.a keccak256.o wrapper.o digest.o files.o generalised-spec.o hex.o state.o hmac.o
+	# ar rc my-library.a keccak256.o digest.o files.o generalised-spec.o hex.o state.o hmac.o
+	# ar rc my-library.a keccak256.o
+
+	# Does doing this -s flag make it run faster?
+	# ar -s libkeccak.a
 
 clean:
 	clear
-	-rm -f -- libkeccak.a libkeccak.so* *.o libkeccak/*.o libkeccak/mac/*.o
+	rm -f *.a *.o
