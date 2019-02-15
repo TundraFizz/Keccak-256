@@ -74,7 +74,7 @@ int print_checksum(const char* publicKey, const libkeccak_spec_t* spec){
   return 0;
 }
 
-char* run(const char* publicKey){
+char* PublicKeyToAddress(const char* publicKey){
   libkeccak_generalised_spec_t gspec;
   libkeccak_spec_t              spec;
 
