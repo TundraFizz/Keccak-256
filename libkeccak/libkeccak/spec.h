@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <limits.h>
 
+// #define restrict // C++ doesn't have the restrict keyword
 
 /**
  * Message suffix for SHA3 hashing
@@ -102,13 +103,13 @@ typedef struct libkeccak_spec {
 
 /**
  * Fill in a `libkeccak_spec_t` for a SHA3-x hashing
- * 
+ *
  * @param  spec  The specifications datastructure to fill in
  * @param  x     The value of x in `SHA3-x`, the output size
  */
 LIBKECCAK_GCC_ONLY(__attribute__((nonnull, nothrow)))
 static inline void
-libkeccak_spec_sha3(libkeccak_spec_t *restrict spec, long x)
+libkeccak_spec_sha3(libkeccak_spec_t* spec, long x)
 {
 	spec->bitrate = 1600 - 2 * x;
 	spec->capacity = 2 * x;
@@ -118,14 +119,14 @@ libkeccak_spec_sha3(libkeccak_spec_t *restrict spec, long x)
 
 /**
  * Fill in a `libkeccak_spec_t` for a RawSHAKEx hashing
- * 
+ *
  * @param  spec  The specifications datastructure to fill in
  * @param  x     The value of x in `RawSHAKEx`, half the capacity
  * @param  d     The output size
  */
 LIBKECCAK_GCC_ONLY(__attribute__((nonnull, nothrow)))
 static inline void
-libkeccak_spec_rawshake(libkeccak_spec_t *restrict spec, long x, long d)
+libkeccak_spec_rawshake(libkeccak_spec_t* spec, long x, long d)
 {
 	spec->bitrate = 1600 - 2 * x;
 	spec->capacity = 2 * x;
@@ -135,7 +136,7 @@ libkeccak_spec_rawshake(libkeccak_spec_t *restrict spec, long x, long d)
 
 /**
  * Fill in a `libkeccak_spec_t` for a SHAKEx hashing
- * 
+ *
  * @param  spec:libkeccak_spec_t*  The specifications datastructure to fill in
  * @param  x:long                  The value of x in `SHAKEx`, half the capacity
  * @param  d:long                  The output size
@@ -145,13 +146,13 @@ libkeccak_spec_rawshake(libkeccak_spec_t *restrict spec, long x, long d)
 
 /**
  * Check for errors in a `libkeccak_spec_t`
- * 
+ *
  * @param   spec  The specifications datastructure to check
  * @return        Zero if error free, a `LIBKECCAK_SPEC_ERROR_*` if an error was found
  */
 LIBKECCAK_GCC_ONLY(__attribute__((nonnull, nothrow, unused, warn_unused_result, pure)))
 static inline int
-libkeccak_spec_check(const libkeccak_spec_t *restrict spec)
+libkeccak_spec_check(const libkeccak_spec_t* spec)
 {
 	long state_size = spec->capacity + spec->bitrate;
 	int32_t word_size = (int32_t)(state_size / 25);
