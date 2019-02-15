@@ -111,12 +111,12 @@ typedef struct libkeccak_generalised_spec
 
 /**
  * Set all specification parameters to automatic
- * 
+ *
  * @param  spec  The specification datastructure to fill in
  */
 LIBKECCAK_GCC_ONLY(__attribute__((nonnull, nothrow, unused)))
 static inline void
-libkeccak_generalised_spec_initialise(libkeccak_generalised_spec_t *restrict spec)
+libkeccak_generalised_spec_initialise(libkeccak_generalised_spec_t* spec)
 {
 	spec->bitrate    = LIBKECCAK_GENERALISED_SPEC_AUTOMATIC;
 	spec->capacity   = LIBKECCAK_GENERALISED_SPEC_AUTOMATIC;
@@ -128,15 +128,14 @@ libkeccak_generalised_spec_initialise(libkeccak_generalised_spec_t *restrict spe
 
 /**
  * Convert a `libkeccak_generalised_spec_t` to a `libkeccak_spec_t`
- * 
+ *
  * @param   spec         The generalised input specifications, will be update with resolved automatic values
  * @param   output_spec  The specification datastructure to fill in
  * @return               Zero if `spec` is valid, a `LIBKECCAK_GENERALISED_SPEC_ERROR_*` if an error was found
  */
 LIBKECCAK_GCC_ONLY(__attribute__((leaf, nonnull, nothrow)))
-int libkeccak_degeneralise_spec(libkeccak_generalised_spec_t *restrict spec,
-                                libkeccak_spec_t *restrict output_spec);
+int libkeccak_degeneralise_spec(libkeccak_generalised_spec_t* spec,
+                                libkeccak_spec_t* output_spec);
 
 
 #endif
-

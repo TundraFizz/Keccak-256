@@ -20,9 +20,9 @@
  * @return           Zero on success, -1 on error
  */
 LIBKECCAK_GCC_ONLY(__attribute__((nonnull(2, 3))))
-int libkeccak_generalised_sum_fd(int fd, libkeccak_state_t *restrict state,
-                                 const libkeccak_spec_t *restrict spec,
-                                 const char *restrict suffix, char *restrict hashsum);
+int libkeccak_generalised_sum_fd(int fd, libkeccak_state_t* state,
+                                 const libkeccak_spec_t* spec,
+                                 const char* suffix, char* hashsum);
 
 
 /**
@@ -38,8 +38,8 @@ int libkeccak_generalised_sum_fd(int fd, libkeccak_state_t *restrict state,
  */
 LIBKECCAK_GCC_ONLY(__attribute__((nonnull(2, 3), artificial, gnu_inline)))
 static inline int
-libkeccak_keccaksum_fd(int fd, libkeccak_state_t *restrict state,
-                       const libkeccak_spec_t *restrict spec, char *restrict hashsum)
+libkeccak_keccaksum_fd(int fd, libkeccak_state_t* state,
+                       const libkeccak_spec_t* spec, char* hashsum)
 {
 	return libkeccak_generalised_sum_fd(fd, state, spec, NULL, hashsum);
 }
@@ -58,8 +58,8 @@ libkeccak_keccaksum_fd(int fd, libkeccak_state_t *restrict state,
  */
 LIBKECCAK_GCC_ONLY(__attribute__((nonnull(2), artificial, gnu_inline)))
 static inline int
-libkeccak_sha3sum_fd(int fd, libkeccak_state_t *restrict state,
-                     long output, char *restrict hashsum)
+libkeccak_sha3sum_fd(int fd, libkeccak_state_t* state,
+                     long output, char* hashsum)
 {
 	libkeccak_spec_t spec;
 	libkeccak_spec_sha3(&spec, output);
@@ -81,8 +81,8 @@ libkeccak_sha3sum_fd(int fd, libkeccak_state_t *restrict state,
  */
 LIBKECCAK_GCC_ONLY(__attribute__((nonnull(2), artificial, gnu_inline)))
 static inline int
-libkeccak_rawshakesum_fd(int fd, libkeccak_state_t *restrict state,
-                         long semicapacity, long output, char *restrict hashsum)
+libkeccak_rawshakesum_fd(int fd, libkeccak_state_t* state,
+                         long semicapacity, long output, char* hashsum)
 {
 	libkeccak_spec_t spec;
 	libkeccak_spec_rawshake(&spec, semicapacity, output);
@@ -104,8 +104,8 @@ libkeccak_rawshakesum_fd(int fd, libkeccak_state_t *restrict state,
  */
 LIBKECCAK_GCC_ONLY(__attribute__((nonnull(2), artificial, gnu_inline)))
 static inline int
-libkeccak_shakesum_fd(int fd, libkeccak_state_t *restrict state,
-                      long semicapacity, long output, char *restrict hashsum)
+libkeccak_shakesum_fd(int fd, libkeccak_state_t* state,
+                      long semicapacity, long output, char* hashsum)
 {
 	libkeccak_spec_t spec;
 	libkeccak_spec_shake(&spec, semicapacity, output);

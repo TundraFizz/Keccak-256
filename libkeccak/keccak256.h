@@ -1,6 +1,6 @@
-// extern "C" {
+extern "C" {
   #include "libkeccak.h"
-// }
+}
 #include <sys/stat.h>
 #include <ctype.h>
 

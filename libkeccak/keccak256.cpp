@@ -1,8 +1,4 @@
-#define restrict // C++ doesn't have the restrict keyword
-
-extern "C" {
-  #include "keccak256.h"
-}
+#include "keccak256.h"
 
 static void* emalloc(size_t n){
   void* r = malloc(n);
