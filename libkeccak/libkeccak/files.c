@@ -38,7 +38,7 @@ libkeccak_generalised_sum_fd(int fd, libkeccak_state_t *restrict state,
 		if (attr.st_size > 0)
 			blksize = (size_t)(attr.st_size);
 
-	chunk = alloca(blksize);
+	chunk = (char*)alloca(blksize);
 
 	for (;;) {
 		got = read(fd, chunk, blksize);
