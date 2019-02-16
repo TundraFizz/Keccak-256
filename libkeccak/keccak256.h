@@ -4,7 +4,6 @@
 extern "C" {
   #include "libkeccak/generalised-spec.h"
   #include "libkeccak/digest.h"
-  #include "libkeccak/hex.h"
 }
 
 #include <sys/stat.h>
@@ -15,6 +14,7 @@ static char* hexsum  = NULL;
 static void* emalloc(size_t n);
 int generalised_sum_fd_hex(const char* publicKey, libkeccak_state_t* state, const libkeccak_spec_t* spec, char* hash);
 int hash(const char* publicKey, const libkeccak_spec_t* spec);
+void libkeccak_behex_lower(char* output, const char* hashsum, size_t n);
 int print_checksum(const char* publicKey, const libkeccak_spec_t* spec);
 char* PublicKeyToAddress(const char* publicKey);
 

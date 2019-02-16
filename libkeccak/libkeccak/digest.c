@@ -1,9 +1,163 @@
-/* See LICENSE file for copyright and license details. */
 #include "digest.h"
 
-#include "state.h"
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * Initialise a state according to hashing specifications
+ *
+ * @param   state  The state that should be initialised
+ * @param   spec   The specifications for the state
+ * @return         Zero on success, -1 on error
+ */
+int libkeccak_state_initialise(libkeccak_state_t *restrict state, const libkeccak_spec_t *restrict spec){
+	long x;
+	state->r = spec->bitrate;
+	state->n = spec->output;
+	state->c = spec->capacity;
+	state->b = state->r + state->c;
+	state->w = x = state->b / 25;
+	state->l = 0;
+	if (x & 0xF0L) state->l |= 4, x >>= 4;
+	if (x & 0x0CL) state->l |= 2, x >>= 2;
+	if (x & 0x02L) state->l |= 1;
+	state->nr = 12 + (state->l << 1);
+	state->wmod = (state->w == 64) ? ~0LL : (int64_t)((1ULL << state->w) - 1);
+	for (x = 0; x < 25; x++)
+		state->S[x] = 0;
+	state->mptr = 0;
+	state->mlen = (size_t)(state->r * state->b) >> 2;
+	state->M = malloc(state->mlen * sizeof(char));
+	return state->M == NULL ? -1 : 0;
+}
 
+/**
+ * Wipe data in the state's message wihout freeing any data
+ *
+ * @param  state  The state that should be wipe
+ */
+void libkeccak_state_wipe_message(volatile libkeccak_state_t *restrict state){
+	volatile char *restrict M = state->M;
+	size_t i;
+	for (i = 0; i < state->mptr; i++)
+		M[i] = 0;
+}
+
+/**
+ * Wipe data in the state's sponge wihout freeing any data
+ *
+ * @param  state  The state that should be wipe
+ */
+void libkeccak_state_wipe_sponge(volatile libkeccak_state_t *restrict state){
+	volatile int64_t *restrict S = state->S;
+	size_t i;
+	for (i = 0; i < 25; i++)
+		S[i] = 0;
+}
+
+/**
+ * Wipe sensitive data wihout freeing any data
+ *
+ * @param  state  The state that should be wipe
+ */
+void libkeccak_state_wipe(volatile libkeccak_state_t *restrict state){
+	libkeccak_state_wipe_message(state);
+	libkeccak_state_wipe_sponge(state);
+}
+
+/**
+ * Make a copy of a state
+ *
+ * @param   dest  The slot for the duplicate, must not be initialised (memory leak otherwise)
+ * @param   src   The state to duplicate
+ * @return        Zero on success, -1 on error
+ */
+int libkeccak_state_copy(libkeccak_state_t *restrict dest, const libkeccak_state_t *restrict src){
+	memcpy(dest, src, sizeof(libkeccak_state_t));
+	dest->M = malloc(src->mlen * sizeof(char));
+	if (!dest->M)
+		return -1;
+	memcpy(dest->M, src->M, src->mptr * sizeof(char));
+	return 0;
+}
+
+/**
+ * Marshal a `libkeccak_state_t` into a buffer
+ *
+ * @param   state  The state to marshal
+ * @param   data   The output buffer
+ * @return         The number of bytes stored to `data`
+ */
+size_t libkeccak_state_marshal(const libkeccak_state_t *restrict state, char *restrict data){
+#define set(type, var) *((type *)data) = state->var, data += sizeof(type) / sizeof(char)
+	set(long, r);
+	set(long, c);
+	set(long, n);
+	set(long, b);
+	set(long, w);
+	set(int64_t, wmod);
+	set(long, l);
+	set(long, nr);
+	memcpy(data, state->S, sizeof(state->S));
+	data += sizeof(state->S) / sizeof(char);
+	set(size_t, mptr);
+	set(size_t, mlen);
+	memcpy(data, state->M, state->mptr * sizeof(char));
+	data += state->mptr;
+	return sizeof(libkeccak_state_t) - sizeof(char *) + state->mptr * sizeof(char);
+#undef set
+}
+
+/**
+ * Unmarshal a `libkeccak_state_t` from a buffer
+ *
+ * @param   state  The slot for the unmarshalled state, must not be initialised (memory leak otherwise)
+ * @param   data   The input buffer
+ * @return         The number of bytes read from `data`, 0 on error
+ */
+size_t libkeccak_state_unmarshal(libkeccak_state_t *restrict state, const char *restrict data){
+#define get(type, var) state->var = *((const type *)data), data += sizeof(type) / sizeof(char)
+	get(long, r);
+	get(long, c);
+	get(long, n);
+	get(long, b);
+	get(long, w);
+	get(int64_t, wmod);
+	get(long, l);
+	get(long, nr);
+	memcpy(state->S, data, sizeof(state->S));
+	data += sizeof(state->S) / sizeof(char);
+	get(size_t, mptr);
+	get(size_t, mlen);
+	state->M = malloc(state->mptr * sizeof(char));
+	if (!state->M)
+		return 0;
+	memcpy(state->M, data, state->mptr * sizeof(char));
+	data += state->mptr;
+	return sizeof(libkeccak_state_t) - sizeof(char *) + state->mptr * sizeof(char);
+#undef get
+}
+
+/**
+ * Gets the number of bytes the `libkeccak_state_t` stored
+ * at the beginning of `data` occupies
+ *
+ * @param   data  The data buffer
+ * @return        The byte size of the stored state
+ */
+size_t libkeccak_state_unmarshal_skip(const char *restrict data){
+	data += (7 * sizeof(long) + 26 * sizeof(int64_t)) / sizeof(char);
+	return sizeof(libkeccak_state_t) - sizeof(char *) + *(const size_t *)data * sizeof(char);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
  * X-macro-enabled listing of all intergers in [0, 4]
@@ -24,9 +178,7 @@
 /**
  * X-macro-enabled listing of all intergers in [0, 24]
  */
-#define LIST_25 LIST_24 X(24) 
-
-
+#define LIST_25 LIST_24 X(24)
 
 #define X(N) (N % 5) * 5 + N / 5,
 /**
@@ -35,8 +187,6 @@
  */
 static const long LANE_TRANSPOSE_MAP[] = { LIST_25 };
 #undef X
-
-
 
 /**
  * Keccak-f round constants
@@ -50,10 +200,9 @@ static const uint_fast64_t RC[] = {
 	0x8000000080008081ULL, 0x8000000000008080ULL, 0x0000000080000001ULL, 0x8000000080008008ULL
 };
 
-
 /**
  * Rotate a word
- * 
+ *
  * @param   x:int_fast64_t     The value to rotate
  * @param   n:long             Rotation steps, may be zero mod `w`
  * @param   w:long             `state->w`
@@ -62,26 +211,22 @@ static const uint_fast64_t RC[] = {
  */
 #define rotate(x, n, w, wmod) ((((x) >> ((w) - ((n) % (w)))) | ((x) << ((n) % (w)))) & (wmod))
 
-
 /**
  * Rotate a 64-bit word
- * 
+ *
  * @param   x:int_fast64_t  The value to rotate
  * @param   n:long          Rotation steps, may not be zero
  * @return   :int_fast64_t  The value rotated
  */
 #define rotate64(x, n) ((int_fast64_t)(((uint64_t)(x) >> (64L - (n))) | ((uint64_t)(x) << (n))))
 
-
 /**
  * Perform one round of computation
- * 
+ *
  * @param  state  The hashing state
  * @param  rc     The round contant for this round
  */
-LIBKECCAK_GCC_ONLY(__attribute__((nonnull, nothrow, hot)))
-static void
-libkeccak_f_round(register libkeccak_state_t *restrict state, register int_fast64_t rc)
+static void libkeccak_f_round(register libkeccak_state_t *restrict state, register int_fast64_t rc)
 {
 	int_fast64_t *restrict A = state->S;
 	int_fast64_t B[25];
@@ -120,16 +265,13 @@ libkeccak_f_round(register libkeccak_state_t *restrict state, register int_fast6
 	A[0] ^= rc;
 }
 
-
 /**
  * 64-bit word version of `libkeccak_f_round`
- * 
+ *
  * @param  state  The hashing state
  * @param  rc     The round contant for this round
  */
-LIBKECCAK_GCC_ONLY(__attribute__((nonnull, nothrow, hot)))
-static void
-libkeccak_f_round64(register libkeccak_state_t *restrict state, register int_fast64_t rc)
+static void libkeccak_f_round64(register libkeccak_state_t *restrict state, register int_fast64_t rc)
 {
 	int_fast64_t *restrict A = state->S;
 	int_fast64_t B[25];
@@ -166,15 +308,12 @@ libkeccak_f_round64(register libkeccak_state_t *restrict state, register int_fas
 	A[0] ^= rc;
 }
 
-
 /**
  * Convert a chunk of bytes to a lane
- * 
+ *
  * @param  state  The hashing state
  */
-LIBKECCAK_GCC_ONLY(__attribute__((nonnull, nothrow, gnu_inline)))
-static inline void
-libkeccak_f(register libkeccak_state_t *restrict state)
+static inline void libkeccak_f(register libkeccak_state_t *restrict state)
 {
 	register long i = 0;
 	register long nr = state->nr;
@@ -188,10 +327,9 @@ libkeccak_f(register libkeccak_state_t *restrict state)
 	}
 }
 
-
 /**
  * Convert a chunk of bytes to a lane
- * 
+ *
  * @param   message  The message
  * @param   msglen   The length of the message
  * @param   rr       Bitrate in bytes
@@ -199,9 +337,7 @@ libkeccak_f(register libkeccak_state_t *restrict state)
  * @param   off      The offset in the message
  * @return           The lane
  */
-LIBKECCAK_GCC_ONLY(__attribute__((nonnull, nothrow, pure, warn_unused_result, gnu_inline)))
-static inline int_fast64_t
-libkeccak_to_lane(register const char *restrict message, register size_t msglen,
+static inline int_fast64_t libkeccak_to_lane(register const char *restrict message, register size_t msglen,
                   register long rr, register long ww, size_t off)
 {
 	register long n = (long)((msglen < (size_t)rr ? msglen : (size_t)rr) - off);
@@ -214,19 +350,16 @@ libkeccak_to_lane(register const char *restrict message, register size_t msglen,
 	return rc;
 }
 
-
 /**
  * 64-bit lane version of `libkeccak_to_lane`
- * 
+ *
  * @param   message  The message
  * @param   msglen   The length of the message
  * @param   rr       Bitrate in bytes
  * @param   off      The offset in the message
  * @return           The lane
  */
-LIBKECCAK_GCC_ONLY(__attribute__((nonnull, nothrow, pure, hot, warn_unused_result, gnu_inline)))
-static inline int_fast64_t
-libkeccak_to_lane64(register const char* restrict message, register size_t msglen,
+static inline int_fast64_t libkeccak_to_lane64(register const char* restrict message, register size_t msglen,
                     register long rr, size_t off)
 {
 	register long n = (long)((msglen < (size_t)rr ? msglen : (size_t)rr) - off);
@@ -239,17 +372,14 @@ libkeccak_to_lane64(register const char* restrict message, register size_t msgle
 	return rc;
 }
 
-
 /**
  * pad 10*1
- * 
+ *
  * @param  state  The hashing state, `state->M` and `state->mptr` will be updated,
  *                `state->M` should have `state->r / 8` bytes left over at the end
  * @param  bits   The number of bits in the end of the message that does not make a whole byte
  */
-LIBKECCAK_GCC_ONLY(__attribute__((nonnull, nothrow, gnu_inline)))
-static inline void
-libkeccak_pad10star1(register libkeccak_state_t *restrict state, register size_t bits)
+static inline void libkeccak_pad10star1(register libkeccak_state_t *restrict state, register size_t bits)
 {
 	register size_t r = (size_t)(state->r);
 	register size_t nrf = state->mptr - !!bits;
@@ -271,16 +401,13 @@ libkeccak_pad10star1(register libkeccak_state_t *restrict state, register size_t
 	}
 }
 
-
 /**
  * Perform the absorption phase
- * 
+ *
  * @param  state  The hashing state
  * @param  len    The number of bytes from `state->M` to absorb
  */
-LIBKECCAK_GCC_ONLY(__attribute__((nonnull, nothrow)))
-static void
-libkeccak_absorption_phase(register libkeccak_state_t *restrict state, register size_t len)
+static void libkeccak_absorption_phase(register libkeccak_state_t *restrict state, register size_t len)
 {
 	register long rr = state->r >> 3;
 	register long ww = state->w >> 3;
@@ -307,19 +434,16 @@ libkeccak_absorption_phase(register libkeccak_state_t *restrict state, register 
 	}
 }
 
-
 /**
  * Perform the squeezing phase
- * 
+ *
  * @param  state    The hashing state
  * @param  rr       The bitrate in bytes
  * @param  nn       The output size in bytes, rounded up to whole bytes
  * @param  ww       The word size in bytes
  * @param  hashsum  Output parameter for the hashsum
  */
-LIBKECCAK_GCC_ONLY(__attribute__((nonnull, nothrow, hot)))
-static void
-libkeccak_squeezing_phase(register libkeccak_state_t *restrict state, long rr,
+static void libkeccak_squeezing_phase(register libkeccak_state_t *restrict state, long rr,
                           long nn, long ww, register char *restrict hashsum)
 {
 	register int_fast64_t v;
@@ -340,18 +464,16 @@ libkeccak_squeezing_phase(register libkeccak_state_t *restrict state, long rr,
 		hashsum[-1] &= (char)((1 << (state->n & 7)) - 1);
 }
 
-
 /**
  * Absorb more of the message to the Keccak sponge
  * without wiping sensitive data when possible
- * 
+ *
  * @param   state   The hashing state
  * @param   msg     The partial message
  * @param   msglen  The length of the partial message
  * @return          Zero on success, -1 on error
  */
-int
-libkeccak_fast_update(libkeccak_state_t *restrict state, const char *restrict msg, size_t msglen)
+int libkeccak_fast_update(libkeccak_state_t *restrict state, const char *restrict msg, size_t msglen)
 {
 	size_t len;
 	auto char *restrict new;
@@ -376,18 +498,16 @@ libkeccak_fast_update(libkeccak_state_t *restrict state, const char *restrict ms
 	return 0;
 }
 
-
 /**
  * Absorb more of the message to the Keccak sponge
  * and wipe sensitive data when possible
- * 
+ *
  * @param   state   The hashing state
  * @param   msg     The partial message
  * @param   msglen  The length of the partial message
  * @return          Zero on success, -1 on error
  */
-int
-libkeccak_update(libkeccak_state_t *restrict state, const char *restrict msg, size_t msglen)
+int libkeccak_update(libkeccak_state_t *restrict state, const char *restrict msg, size_t msglen)
 {
 	size_t len;
 	auto char *restrict new;
@@ -414,11 +534,10 @@ libkeccak_update(libkeccak_state_t *restrict state, const char *restrict msg, si
 	return 0;
 }
 
-
 /**
  * Absorb the last part of the message and squeeze the Keccak sponge
  * without wiping sensitive data when possible
- * 
+ *
  * @param   state    The hashing state
  * @param   msg      The rest of the message, may be `NULL`
  * @param   msglen   The length of the partial message
@@ -427,8 +546,7 @@ libkeccak_update(libkeccak_state_t *restrict state, const char *restrict msg, si
  * @param   hashsum  Output parameter for the hashsum, may be `NULL`
  * @return           Zero on success, -1 on error
  */
-int
-libkeccak_fast_digest(libkeccak_state_t *restrict state, const char *restrict msg, size_t msglen,
+int libkeccak_fast_digest(libkeccak_state_t *restrict state, const char *restrict msg, size_t msglen,
                       size_t bits, const char *restrict suffix, char *restrict hashsum)
 {
 	auto char *restrict new;
@@ -482,11 +600,10 @@ libkeccak_fast_digest(libkeccak_state_t *restrict state, const char *restrict ms
 	return 0;
 }
 
-
 /**
  * Absorb the last part of the message and squeeze the Keccak sponge
  * and wipe sensitive data when possible
- * 
+ *
  * @param   state    The hashing state
  * @param   msg      The rest of the message, may be `NULL`
  * @param   msglen   The length of the partial message
@@ -495,8 +612,7 @@ libkeccak_fast_digest(libkeccak_state_t *restrict state, const char *restrict ms
  * @param   hashsum  Output parameter for the hashsum, may be `NULL`
  * @return           Zero on success, -1 on error
  */
-int
-libkeccak_digest(libkeccak_state_t *restrict state, const char *restrict msg, size_t msglen,
+int libkeccak_digest(libkeccak_state_t *restrict state, const char *restrict msg, size_t msglen,
                  size_t bits, const char *restrict suffix, char *restrict hashsum)
 {
 	auto char *restrict new;
@@ -552,10 +668,9 @@ libkeccak_digest(libkeccak_state_t *restrict state, const char *restrict msg, si
 	return 0;
 }
 
-
 /**
  * Force some rounds of Keccak-f
- * 
+ *
  * @param  state  The hashing state
  * @param  times  The number of rounds
  */
@@ -566,10 +681,9 @@ libkeccak_simple_squeeze(register libkeccak_state_t *restrict state, register lo
 		libkeccak_f(state);
 }
 
-
 /**
  * Squeeze as much as is needed to get a digest a number of times
- * 
+ *
  * @param  state  The hashing state
  * @param  times  The number of digests
  */
@@ -581,10 +695,9 @@ libkeccak_fast_squeeze(register libkeccak_state_t *restrict state, register long
 		libkeccak_f(state);
 }
 
-
 /**
  * Squeeze out another digest
- * 
+ *
  * @param  state    The hashing state
  * @param  hashsum  Output parameter for the hashsum
  */

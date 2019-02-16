@@ -1,105 +1,28 @@
-/* See LICENSE file for copyright and license details. */
 #ifndef LIBKECCAK_SPEC_H
-#define LIBKECCAK_SPEC_H 1
-
-#include "internal.h"
+#define LIBKECCAK_SPEC_H
 
 #include <stdint.h>
 #include <limits.h>
 
-// #define restrict // C++ doesn't have the restrict keyword
+#define LIBKECCAK_SHA3_SUFFIX "01" // Message suffix for SHA3 hashing
+#define LIBKECCAK_RAWSHAKE_SUFFIX "11" // Message suffix for RawSHAKE hashing
+#define LIBKECCAK_SHAKE_SUFFIX "1111" // Message suffix for SHAKE hashing
+#define LIBKECCAK_SPEC_ERROR_BITRATE_NONPOSITIVE 1 // Invalid `libkeccak_spec_t.bitrate`: non-positive
+#define LIBKECCAK_SPEC_ERROR_BITRATE_MOD_8 2 // Invalid `libkeccak_spec_t.bitrate`: not a multiple of 8
+#define LIBKECCAK_SPEC_ERROR_CAPACITY_NONPOSITIVE 3 // Invalid `libkeccak_spec_t.capacity`: non-positive
+#define LIBKECCAK_SPEC_ERROR_CAPACITY_MOD_8 4 // Invalid `libkeccak_spec_t.capacity`: not a multiple of 8
+#define LIBKECCAK_SPEC_ERROR_OUTPUT_NONPOSITIVE 5 // Invalid `libkeccak_spec_t.output`: non-positive
+#define LIBKECCAK_SPEC_ERROR_STATE_TOO_LARGE 6 // Invalid `libkeccak_spec_t` values: `.bitrate + `.capacity` is greater 1600 which is the largest supported state size
+#define LIBKECCAK_SPEC_ERROR_STATE_MOD_25 7 // Invalid `libkeccak_spec_t` values: `.bitrate + `.capacity` is not a multiple of 25
+#define LIBKECCAK_SPEC_ERROR_WORD_NON_2_POTENT 8 // Invalid `libkeccak_spec_t` values: `.bitrate + `.capacity` is a not a 2-potent multiple of 25
+#define LIBKECCAK_SPEC_ERROR_WORD_MOD_8 9 // Invalid `libkeccak_spec_t` values: `.bitrate + `.capacity` is a not multiple of 100, and thus the word size is not a multiple of 8
 
-/**
- * Message suffix for SHA3 hashing
- */
-#define LIBKECCAK_SHA3_SUFFIX "01"
-
-/**
- * Message suffix for RawSHAKE hashing
- */
-#define LIBKECCAK_RAWSHAKE_SUFFIX "11"
-
-/**
- * Message suffix for SHAKE hashing
- */
-#define LIBKECCAK_SHAKE_SUFFIX "1111"
-
-
-/**
- * Invalid `libkeccak_spec_t.bitrate`: non-positive
- */
-#define LIBKECCAK_SPEC_ERROR_BITRATE_NONPOSITIVE 1
-
-/**
- * Invalid `libkeccak_spec_t.bitrate`: not a multiple of 8
- */
-#define LIBKECCAK_SPEC_ERROR_BITRATE_MOD_8 2
-
-/**
- * Invalid `libkeccak_spec_t.capacity`: non-positive
- */
-#define LIBKECCAK_SPEC_ERROR_CAPACITY_NONPOSITIVE 3
-
-/**
- * Invalid `libkeccak_spec_t.capacity`: not a multiple of 8
- */
-#define LIBKECCAK_SPEC_ERROR_CAPACITY_MOD_8 4
-
-/**
- * Invalid `libkeccak_spec_t.output`: non-positive
- */
-#define LIBKECCAK_SPEC_ERROR_OUTPUT_NONPOSITIVE 5
-
-/**
- * Invalid `libkeccak_spec_t` values: `.bitrate + `.capacity`
- * is greater 1600 which is the largest supported state size
- */
-#define LIBKECCAK_SPEC_ERROR_STATE_TOO_LARGE 6
-
-/**
- * Invalid `libkeccak_spec_t` values:
- * `.bitrate + `.capacity` is not a multiple of 25
- */
-#define LIBKECCAK_SPEC_ERROR_STATE_MOD_25 7
-
-/**
- * Invalid `libkeccak_spec_t` values: `.bitrate + `.capacity`
- * is a not a 2-potent multiple of 25
- */
-#define LIBKECCAK_SPEC_ERROR_WORD_NON_2_POTENT 8
-
-/**
- * Invalid `libkeccak_spec_t` values: `.bitrate + `.capacity`
- * is a not multiple of 100, and thus the word size is not
- * a multiple of 8
- */
-#define LIBKECCAK_SPEC_ERROR_WORD_MOD_8 9
-
-
-
-/**
- * Datastructure that describes the parameters
- * that should be used when hashing
- */
+// Datastructure that describes the parameters that should be used when hashing
 typedef struct libkeccak_spec {
-	/**
-	 * The bitrate
-	 */
-	long bitrate;
-
-	/**
-	 * The capacity
-	 */
-	long capacity;
-
-	/**
-	 * The output size
-	 */
-	long output;
-
+	long bitrate;  // The bitrate
+	long capacity; // The capacity
+	long output;   // The output size
 } libkeccak_spec_t;
-
-
 
 /**
  * Fill in a `libkeccak_spec_t` for a SHA3-x hashing
@@ -107,15 +30,12 @@ typedef struct libkeccak_spec {
  * @param  spec  The specifications datastructure to fill in
  * @param  x     The value of x in `SHA3-x`, the output size
  */
-LIBKECCAK_GCC_ONLY(__attribute__((nonnull, nothrow)))
-static inline void
-libkeccak_spec_sha3(libkeccak_spec_t* spec, long x)
+static inline void libkeccak_spec_sha3(libkeccak_spec_t* spec, long x)
 {
 	spec->bitrate = 1600 - 2 * x;
 	spec->capacity = 2 * x;
 	spec->output = x;
 }
-
 
 /**
  * Fill in a `libkeccak_spec_t` for a RawSHAKEx hashing
@@ -124,15 +44,12 @@ libkeccak_spec_sha3(libkeccak_spec_t* spec, long x)
  * @param  x     The value of x in `RawSHAKEx`, half the capacity
  * @param  d     The output size
  */
-LIBKECCAK_GCC_ONLY(__attribute__((nonnull, nothrow)))
-static inline void
-libkeccak_spec_rawshake(libkeccak_spec_t* spec, long x, long d)
+static inline void libkeccak_spec_rawshake(libkeccak_spec_t* spec, long x, long d)
 {
 	spec->bitrate = 1600 - 2 * x;
 	spec->capacity = 2 * x;
 	spec->output = d;
 }
-
 
 /**
  * Fill in a `libkeccak_spec_t` for a SHAKEx hashing
@@ -143,16 +60,13 @@ libkeccak_spec_rawshake(libkeccak_spec_t* spec, long x, long d)
  */
 #define libkeccak_spec_shake libkeccak_spec_rawshake
 
-
 /**
  * Check for errors in a `libkeccak_spec_t`
  *
  * @param   spec  The specifications datastructure to check
  * @return        Zero if error free, a `LIBKECCAK_SPEC_ERROR_*` if an error was found
  */
-LIBKECCAK_GCC_ONLY(__attribute__((nonnull, nothrow, unused, warn_unused_result, pure)))
-static inline int
-libkeccak_spec_check(const libkeccak_spec_t* spec)
+static inline int libkeccak_spec_check(const libkeccak_spec_t* spec)
 {
 	long state_size = spec->capacity + spec->bitrate;
 	int32_t word_size = (int32_t)(state_size / 25);

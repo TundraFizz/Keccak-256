@@ -1,38 +1,26 @@
-/* See LICENSE file for copyright and license details. */
 #include "generalised-spec.h"
-
-#ifdef __GNUC__
-# pragma GCC diagnostic push
-# pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-#endif
 
 #define have(v)     (spec->v != LIBKECCAK_GENERALISED_SPEC_AUTOMATIC)
 #define copy(v)     (v = spec->v)
 #define deft(v, dv) (have_##v ? v : (dv))
-
-
 
 /**
  * Convert a `libkeccak_generalised_spec_t` to a `libkeccak_spec_t`
  *
  * If you are interrested in finding errors, you should call
  * `libkeccak_spec_check(output)` if this function returns zero
- * 
+ *
  * @param   spec         The generalised input specifications, will be update with resolved automatic values
  * @param   output_spec  The specification datastructure to fill in
  * @return               Zero if `spec` is valid, a `LIBKECCAK_GENERALISED_SPEC_ERROR_*` if an error was found
  */
-int
-libkeccak_degeneralise_spec(libkeccak_generalised_spec_t *restrict spec,
-                            libkeccak_spec_t *restrict output_spec)
-{
+int libkeccak_degeneralise_spec(libkeccak_generalised_spec_t *restrict spec, libkeccak_spec_t *restrict output_spec){
 	long state_size, word_size, capacity, bitrate, output;
 	const int have_state_size = have(state_size);
 	const int have_word_size  = have(word_size);
 	const int have_capacity   = have(capacity);
 	const int have_bitrate    = have(bitrate);
 	const int have_output     = have(output);
-
 
 	if (have_state_size) {
 		copy(state_size);
@@ -68,7 +56,6 @@ libkeccak_degeneralise_spec(libkeccak_generalised_spec_t *restrict spec,
 		if (output <= 0) return LIBKECCAK_GENERALISED_SPEC_ERROR_OUTPUT_NONPOSITIVE;
 	}
 
-
 	if (!have_bitrate && !have_capacity && !have_output) {
 		state_size = deft(state_size, 1600L);
 		output = ((state_size << 5) / 100L + 7L) & ~0x07L;
@@ -101,11 +88,6 @@ libkeccak_degeneralise_spec(libkeccak_generalised_spec_t *restrict spec,
 	return 0;
 }
 
-
 #undef deft
 #undef copy
 #undef have
-
-#ifdef __GNUC__
-# pragma GCC diagnostic pop
-#endif

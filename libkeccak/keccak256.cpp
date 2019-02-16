@@ -64,6 +64,14 @@ int hash(const char* publicKey, const libkeccak_spec_t* spec){
   return 0;
 }
 
+void libkeccak_behex_lower(char* output, const char* hashsum, size_t n){
+  output[2 * n] = '\0';
+  while (n--) {
+    output[2 * n + 0] = "0123456789abcdef"[(hashsum[n] >> 4) & 15];
+    output[2 * n + 1] = "0123456789abcdef"[(hashsum[n] >> 0) & 15];
+  }
+}
+
 int print_checksum(const char* publicKey, const libkeccak_spec_t* spec){
   size_t n = (size_t)((spec->output + 7) / 8);
 
