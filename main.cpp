@@ -1,4 +1,5 @@
-#include "libkeccak/keccak256.h"
+// #include "libkeccak/keccak256.h"
+#include "master-header.h"
 #include <iostream>
 
 // Only for debugging; testing code execution time
