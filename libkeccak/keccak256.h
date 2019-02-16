@@ -2,8 +2,8 @@
 #define KECCAK256_H
 
 extern "C" {
-  #include "libkeccak/generalised-spec.h"
-  #include "libkeccak/digest.h"
+  #include "generalised-spec.h"
+  #include "digest.h"
 }
 
 #include <sys/stat.h>
