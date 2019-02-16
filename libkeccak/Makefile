@@ -16,9 +16,9 @@ fast:
 	# 3bb89452fe5544e057767a22e7b8a14e8338963e64fb146cd22746b543d339e8
 
 CreateObjectFiles:
-	g++ -c -O3 -s keccak256.cpp               -o keccak256.o
-	gcc $(FLAGS) libkeccak/generalised-spec.c -o generalised-spec.o
-	gcc $(FLAGS) libkeccak/digest.c           -o digest.o
+	g++ -c -O3 -s keccak256.cpp     -o keccak256.o
+	gcc $(FLAGS) generalised-spec.c -o generalised-spec.o
+	gcc $(FLAGS) digest.c           -o digest.o
 
 CreateArchive:
 	ar rc reeeeee.a keccak256.o digest.o generalised-spec.o
