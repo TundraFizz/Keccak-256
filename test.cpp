@@ -1,5 +1,4 @@
-// #include "libkeccak/keccak256.h"
-#include "master-header.h"
+#include "libkeccak/keccak256.h"
 #include <iostream>
 
 // Only for debugging; testing code execution time
@@ -22,12 +21,12 @@ char* RandomString(){
   return temp;
 }
 
-int main(void){
+int main(int argc, char *argv[]){
   std::cout << "==================== BEGIN TESTS ====================\n";
 
-  // Generate a million keys
-  // int keysToGenerate = 1000000;
-  int keysToGenerate = 1000000; // 40,000 for debugging with Valgrind
+  int keysToGenerate = atoi(argv[1]);
+  std::cout << "Testing with " << keysToGenerate << " keys\n";
+
   char **keyring = new char *[keysToGenerate];
 
   for(int i = 0; i < keysToGenerate; ++i){
