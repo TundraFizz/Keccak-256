@@ -8,24 +8,24 @@ git clone https://github.com/TundraFizz/Keccak-256
 cd Keccak-256
 ```
 
-Using the precompiled binary
+Build and/or compile and test by performing one of these commands
+
+| Command                         | Description                                |
+| ------------------------------- | ------------------------------------------ |
+| `make -C libkeccak precompiled` | Build the library from scratch and test it |
+| `make -C libkeccak build`       | Test the precompiled library               |
+| `make -C libkeccak`             | Run both of the above tests                |
+
+#### TODO
 
 ```
-# gcc -c -std=c99 -O3 -s keccak256.c -o keccak256.o
-g++ -c -O3 -s keccak256.cpp -o keccak256.o
 
-# g++ -c -O3 -s wrapper.cpp -o wrapper.o
-# g++ -O3 -s main.cpp wrapper.o keccak256.o -L precompiled -l :libkeccak.a -o myapp
-
-g++ -O3 -s main.cpp keccak256.o -L precompiled -l :libkeccak.a -o myapp
-./myapp
-```
-
-Compiling Keccak-256 yourself
-
-```
-make -C libkeccak
-gcc -c -std=c99 -O3 -s keccak256.c -o keccak256.o
-g++ -O3 -s main.cpp keccak256.o -L libkeccak -l :libkeccak.a -o myapp
-./myapp
+# 3.4 seconds
+# keccak256.h
+#   1. generalised-spec.h -> spec.h
+#   2. digest.h           -> spec.h
+#
+# generalised-spec.h has 100 lines of code in its .c and .h (200 total)
+# spec.h             doesn't have a .c file                 (100 total)
+# digest.h           has 750 lines of code in its .c        (1,000 total)
 ```
