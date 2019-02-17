@@ -94,6 +94,17 @@ char* PublicKeyToAddress(const char* publicKey){
   if(print_checksum(publicKey, &spec) == -1)
     return (char*)-1;
 
+  //                      24 | 40
+  // 3bb89452fe5544e057767a22|e7b8a14e8338963e64fb146cd22746b543d339e8
+  //                         |e7B8a14E8338963E64fB146cd22746B543D339e8
+  char* address = new char[43];
+  address[0] = '0';
+  address[1] = 'x';
+  memcpy(&address[2], &hexsum[24], 40);
+  address[42] = '\0';
+
+  free(hexsum);
   free(hashsum);
-  return hexsum;
+
+  return address;
 }
