@@ -10,11 +10,11 @@ cd Keccak-256
 
 Build and/or compile and test by performing one of these commands
 
-| Command                         | Description                                |
-| ------------------------------- | ------------------------------------------ |
-| `make -C libkeccak precompiled` | Build the library from scratch and test it |
-| `make -C libkeccak build`       | Test the precompiled library               |
-| `make -C libkeccak`             | Run both of the above tests                |
+| Command                   | Description                                |
+| ------------------------- | ------------------------------------------ |
+| `make -C lib precompiled` | Build the library from scratch and test it |
+| `make -C lib build`       | Test the precompiled library               |
+| `make -C lib`             | Run both of the above tests                |
 
 #### TODO
 
